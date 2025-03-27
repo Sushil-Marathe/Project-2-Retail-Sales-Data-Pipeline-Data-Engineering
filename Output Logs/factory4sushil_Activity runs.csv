@@ -1,0 +1,5 @@
+"Activity name","Activity status","Error","Activity type","Run start","Duration","Integration runtime","User properties","Activity run ID","Log"
+"Aggregation_Pipeline","Succeeded","","DatabricksNotebook","12/18/2024, 1:00:47 AM","1m 6s","AutoResolveIntegrationRuntime (East US)","{}","7cb9a25c-36c4-477d-8346-4bd586f1d0dd",""
+"LR_Model_Pipeline","Succeeded","","DatabricksNotebook","12/18/2024, 1:00:47 AM","1m 52s","AutoResolveIntegrationRuntime (East US)","{}","28b9563f-4e90-4da4-b6ef-9dcd8facb1a8",""
+"Cleaning_Notebook","Succeeded","","DatabricksNotebook","12/18/2024, 12:59:20 AM","1m 24s","AutoResolveIntegrationRuntime (East US)","{}","323260fd-e50d-4c5b-9135-ff358f6883b8",""
+"raw_to_bronze","Succeeded","","Copy","12/18/2024, 12:58:57 AM","22s","AutoResolveIntegrationRuntime (East US)","{}","ac85343f-a546-4860-83b2-a545572867f0",""
