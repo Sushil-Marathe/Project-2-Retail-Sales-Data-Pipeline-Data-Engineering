@@ -1,0 +1,90 @@
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: 'DEV'
+- name: branchName
+  value: $(Build.SourceBranch)
+- name: FolderName
+  value: release
+
+steps:
+
+# Step 1: Checkout Repository with Persisted Credentials
+- checkout: self
+  displayName: 'Checkout Repository'
+  fetchDepth: 0
+  persistCredentials: true  # Ensures authentication token is used for git commands
+
+# Step 2: Set Git Identity for Commit
+- script: |
+    git config --global user.email "ci-pipeline@yourdomain.com"
+    git config --global user.name "CI Pipeline"
+  displayName: 'Set Git Identity'
+
+# Step 3: Install Databricks CLI
+- script: |
+    pip install databricks-cli
+  displayName: "Install Databricks CLI"
+
+# Step 4: Configure Databricks CLI
+- script: |
+    echo "$(databricksHost)
+    $(databricksToken)" | databricks configure --token
+  displayName: 'Configure Databricks CLI'
+
+# Step 5: Test Databricks CLI Connection
+- script: |
+    databricks workspace ls
+  displayName: 'Test Databricks CLI Connection'
+
+# Step 6: Fetch All Branches and Checkout Prod Branch
+- script: |
+    git fetch --all
+    git checkout prod || git checkout -b prod
+  displayName: 'Fetch and Checkout Prod Branch'
+
+# Step 7: Merge Main into Prod
+- script: |
+    git merge origin/main --no-ff --commit -m "Merge changes from main branch"
+  displayName: 'Merge Main into Prod'
+
+# Step 8: Push Changes to Prod Branch
+- script: |
+    git push origin prod
+  displayName: 'Push Changes to Prod Branch'
+
+# Step 9: Publish Updated Prod Branch Files as Pipeline Artifact
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.Repository.LocalPath)/'
+    artifact: 'Databricks'
+    publishLocation: 'pipeline'
+  displayName: 'Publish Prod Branch Files as Artifact'
+
+# Step 10: Download Pipeline Artifact
+- task: DownloadPipelineArtifact@2
+  inputs:
+    source: current
+    artifact: 'Databricks'
+    downloadPath: $(System.ArtifactsDirectory)/databricks
+  displayName: 'Download Prod Files Artifact'
+
+# Step 11: List Downloaded Files
+- script: |
+    ls $(System.ArtifactsDirectory)/databricks
+  displayName: 'List Downloaded Artifacts'
+
+# Step 12: Delete Old Release Folder in Databricks
+- script: |
+    FOLDER=/$(FolderName)
+    echo "Folder to delete: $FOLDER"
+    databricks workspace rm $FOLDER --recursive
+  displayName: 'Delete Old Release Folder'
+
+# Step 13: Deploy New Release to Databricks
+- script: |
+    FOLDER=/$(FolderName)
+    echo "Folder for new release: $FOLDER"
+    databricks workspace import_dir $(System.ArtifactsDirectory)/databricks $FOLDER --exclude-hidden-files
+  displayName: 'Deploy New Release to Databricks'
